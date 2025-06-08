@@ -1,0 +1,62 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and effects -->
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1C2C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#242641;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Bar gradient -->
+    <linearGradient id="barGradient16" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B47;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF4C29;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Energy spark gradient -->
+    <linearGradient id="sparkGradient16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3EEBD4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2EC4B6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Drop shadow filter (smaller for 16x16) -->
+    <filter id="shadow16" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0.5" stdDeviation="0.5" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- Glow effect for spark -->
+    <filter id="glow16" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Enhanced rounded background with gradient -->
+  <rect width="16" height="16" rx="4" fill="url(#bgGradient16)" filter="url(#shadow16)"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="0.25" y="0.25" width="15.5" height="15.5" rx="3.75" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.25"/>
+  
+  <!-- Chart bars with enhanced styling (scaled for 16x16) -->
+  <!-- First bar: small -->
+  <rect x="3.75" y="10" width="2" height="3" rx="1" fill="url(#barGradient16)" filter="url(#shadow16)"/>
+  
+  <!-- Second bar: tallest -->
+  <rect x="7" y="6" width="2" height="7" rx="1" fill="url(#barGradient16)" filter="url(#shadow16)"/>
+  
+  <!-- Third bar: medium -->
+  <rect x="10.25" y="8" width="2" height="5" rx="1" fill="url(#barGradient16)" filter="url(#shadow16)"/>
+  
+  <!-- Enhanced energy spark with glow effect -->
+  <g transform="translate(11, 2) scale(0.2)" filter="url(#glow16)">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#sparkGradient16)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+  </g>
+  
+  <!-- Subtle highlight on bars -->
+  <rect x="4" y="10" width="1" height="1.5" rx="0.5" fill="rgba(255,255,255,0.2)"/>
+  <rect x="7.25" y="6" width="1" height="3.5" rx="0.5" fill="rgba(255,255,255,0.2)"/>
+  <rect x="10.5" y="8" width="1" height="2.5" rx="0.5" fill="rgba(255,255,255,0.2)"/>
+</svg>

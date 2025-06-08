@@ -1,10 +1,8 @@
-
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import { DataProvider } from '../../contexts/DataContext';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import { DataProvider } from "../../contexts/DataContext";
 
 const DashboardLayout: React.FC = () => {
   return (
@@ -17,7 +15,6 @@ const DashboardLayout: React.FC = () => {
             <Outlet />
           </main>
         </div>
-        <Toaster position="top-right" richColors closeButton />
       </div>
     </DataProvider>
   );

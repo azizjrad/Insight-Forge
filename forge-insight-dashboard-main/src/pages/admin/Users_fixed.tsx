@@ -823,11 +823,7 @@ const Users: React.FC = () => {
                 onChange={(e) =>
                   setNotificationData((prev) => ({
                     ...prev,
-                    type: e.target.value as
-                      | "info"
-                      | "success"
-                      | "warning"
-                      | "error",
+                    type: e.target.value as any,
                   }))
                 }
                 className="w-full bg-slate-700/50 border border-slate-600/50 rounded-md text-white focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:outline-none px-3 py-2"
