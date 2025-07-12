@@ -23,18 +23,18 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
   t,
   revenueExpenses,
 }) => (
-  <Card className="bg-white border border-gray-200/50 shadow-sm hover:shadow-lg transition-all duration-300">
+  <Card className="bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-xl hover:shadow-2xl hover:border-secondary/30 transition-all duration-300">
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500/10 to-green-500/20 rounded-xl">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
+          <div className="p-2 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-xl">
+            <BarChart3 className="w-5 h-5 text-secondary" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-gray-200">
               {t("financial.revenueVsExpenses")}
             </h3>
-            <p className="text-sm text-gray-500">Monthly comparison analysis</p>
+            <p className="text-sm text-gray-400">Monthly comparison analysis</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
             <TooltipTrigger>
               <Info
                 size={16}
-                className="text-gray-400 hover:text-primary transition-colors"
+                className="text-gray-400 hover:text-secondary transition-colors"
               />
             </TooltipTrigger>
             <TooltipContent>
@@ -51,7 +51,7 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
               </p>
             </TooltipContent>
           </Tooltip>
-          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+          <button className="p-2 text-gray-400 hover:text-gray-300 hover:bg-gray-700/60 rounded-lg transition-all">
             <RefreshCw size={16} />
           </button>
         </div>
@@ -68,18 +68,18 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
         height={350}
       />
       <div className="mt-6 grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200/50">
-          <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+        <div className="flex items-center gap-3 p-4 bg-green-500/10 backdrop-blur-md rounded-xl border border-green-500/20">
+          <div className="w-4 h-4 bg-green-400 rounded-full"></div>
           <div>
-            <p className="text-sm font-medium text-green-700">Revenue Trend</p>
-            <p className="text-xs text-green-600">+4.3% growth rate</p>
+            <p className="text-sm font-medium text-green-400">Revenue Trend</p>
+            <p className="text-xs text-green-300">+4.3% growth rate</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-200/50">
-          <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 backdrop-blur-md rounded-xl border border-red-500/20">
+          <div className="w-4 h-4 bg-red-400 rounded-full"></div>
           <div>
-            <p className="text-sm font-medium text-red-700">Expense Trend</p>
-            <p className="text-xs text-red-600">+2.7% increase</p>
+            <p className="text-sm font-medium text-red-400">Expense Trend</p>
+            <p className="text-xs text-red-300">+2.7% increase</p>
           </div>
         </div>
       </div>

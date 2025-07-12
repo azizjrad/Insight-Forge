@@ -15,11 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import Logo from "../../components/layout/Logo";
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -29,11 +31,10 @@ const Register: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, signUp } = useAuth();
 
   // Check if user is already logged in
-  const isLoggedIn = localStorage.getItem("user_logged_in") === "true";
-
-  if (isLoggedIn) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -56,20 +57,25 @@ const Register: React.FC = () => {
 
     setIsLoading(true);
 
-    // Simple demo registration
-    if (formData.email && formData.password && formData.fullName) {
-      localStorage.setItem("user_logged_in", "true");
-      localStorage.setItem(
-        "user_data",
-        JSON.stringify({
-          email: formData.email,
-          name: formData.fullName,
-        })
+    try {
+      const fullName = `${formData.firstName} ${formData.lastName}`;
+      const { error } = await signUp(
+        formData.email,
+        formData.password,
+        fullName
       );
-      toast.success("Account created successfully!");
-      navigate("/dashboard");
-    } else {
-      toast.error("Please fill in all required fields");
+
+      if (error) {
+        toast.error("Registration failed. Please try again.");
+      } else {
+        toast.success("Account created successfully!");
+        // Small delay to ensure auth context is updated
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 100);
+      }
+    } catch (error) {
+      toast.error("An error occurred during registration");
     }
 
     setIsLoading(false);
@@ -92,33 +98,13 @@ const Register: React.FC = () => {
 
       <div className="relative z-10 flex flex-col justify-center py-12 sm:px-6 lg:px-8 min-h-screen">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          {/* Back to Home Button */}
-          <div className="flex justify-center mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors duration-300 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
-              Back to Home
-            </Link>
-          </div>
-
           <div className="flex justify-center mb-6">
             <Logo variant="white" />
           </div>
 
           <div className="text-center mb-8">
             <p className="text-xl text-gray-200 mb-2">
-              Create your InsightForge account
-            </p>
-            <p className="text-gray-300">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="font-medium text-accent hover:text-accent/90 transition-colors"
-              >
-                Sign in here
-              </Link>
+              Register to bring new insights to light
             </p>
           </div>
         </div>
@@ -133,28 +119,60 @@ const Register: React.FC = () => {
                 </h2>
               </div>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Full Name Field */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="fullName"
-                    className="text-gray-700 font-medium"
-                  >
-                    Full name
-                  </Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
+                {/* Name Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* First Name Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="firstName"
+                      className="text-gray-700 font-medium"
+                    >
+                      First name
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        autoComplete="given-name"
+                        required
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          handleChange("firstName", e.target.value)
+                        }
+                        placeholder="First name"
+                        className="pl-10 h-12 border-gray-200 focus:border-secondary focus:ring-secondary/20 rounded-xl transition-all duration-200"
+                      />
                     </div>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      autoComplete="name"
-                      required
-                      value={formData.fullName}
-                      onChange={(e) => handleChange("fullName", e.target.value)}
-                      placeholder="Enter your full name"
-                      className="pl-10 h-12 border-gray-200 focus:border-secondary focus:ring-secondary/20 rounded-xl transition-all duration-200"
-                    />
+                  </div>
+
+                  {/* Last Name Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="lastName"
+                      className="text-gray-700 font-medium"
+                    >
+                      Last name
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        autoComplete="family-name"
+                        required
+                        value={formData.lastName}
+                        onChange={(e) =>
+                          handleChange("lastName", e.target.value)
+                        }
+                        placeholder="Last name"
+                        className="pl-10 h-12 border-gray-200 focus:border-secondary focus:ring-secondary/20 rounded-xl transition-all duration-200"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -307,7 +325,6 @@ const Register: React.FC = () => {
                     </span>
                   ) : (
                     <span className="relative z-10 flex items-center justify-center gap-2">
-                      <Sparkles className="w-4 h-4" />
                       Create account
                     </span>
                   )}
@@ -384,6 +401,19 @@ const Register: React.FC = () => {
                     Facebook
                   </span>
                 </Button>
+              </div>
+
+              {/* Sign in link */}
+              <div className="mt-6 text-center">
+                <p className="text-gray-600">
+                  Already have an account?{" "}
+                  <Link
+                    to="/login"
+                    className="font-medium text-accent hover:text-accent/90 transition-colors"
+                  >
+                    Sign in here
+                  </Link>
+                </p>
               </div>
 
               {/* Additional Info */}

@@ -29,22 +29,28 @@ const ScrollToTop: React.FC = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="group fixed bottom-8 right-8 z-50 w-12 h-12 bg-black/90 hover:bg-black text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 animate-fade-in backdrop-blur-sm border border-gray-800/50 hover:border-gray-700"
+          className="group fixed bottom-8 right-8 z-50 w-12 h-12 bg-primary/95 hover:bg-primary/100 text-gray-200 hover:text-secondary rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in border border-gray-600/30 hover:border-gray-500/50 hover:scale-105 overflow-hidden"
           aria-label="Scroll to top"
         >
-          {/* Background Glow Effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-600/20 to-gray-800/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          {/* Multi-layer glassmorphism overlay - only on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary/12 via-primary/5 to-accent/12 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+
+          {/* Enhanced glass reflection on hover */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-white/8 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-all duration-300"></div>
+
+          {/* Subtle inner glow on hover */}
+          <div className="absolute inset-0 shadow-inner shadow-secondary/10 opacity-0 group-hover:opacity-100 rounded-2xl transition-all duration-300"></div>
+
+          {/* Shimmer effect on hover */}
+          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-2xl"></div>
 
           {/* Arrow Icon */}
-          <div className="relative flex items-center justify-center h-full">
+          <div className="relative z-10 flex items-center justify-center h-full">
             <ArrowUp
               size={18}
               className="transform group-hover:scale-110 group-hover:-translate-y-0.5 transition-all duration-200"
             />
           </div>
-
-          {/* Subtle Ring Animation on Hover */}
-          <div className="absolute inset-0 rounded-full border-2 border-gray-600/30 scale-0 group-hover:scale-110 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
         </button>
       )}
     </>

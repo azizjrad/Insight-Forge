@@ -89,27 +89,27 @@ const ProfileSettings = () => {
     }
   };
   return (
-    <Card className="bg-white/80 backdrop-blur-md border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 p-6">
+    <Card className="bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-xl hover:shadow-2xl hover:border-blue-500/30 transition-all duration-300 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 bg-blue-500/10 rounded-xl">
-          <User className="w-6 h-6 text-blue-600" />
+          <User className="w-6 h-6 text-blue-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-200">
             Profile Settings
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Manage your personal information
           </p>
         </div>
         {saveStatus === "success" && (
-          <div className="flex items-center gap-2 text-green-600">
+          <div className="flex items-center gap-2 text-green-400">
             <CheckCircle size={16} />
             <span className="text-sm font-medium">Saved!</span>
           </div>
         )}
         {saveStatus === "error" && (
-          <div className="flex items-center gap-2 text-red-600">
+          <div className="flex items-center gap-2 text-red-400">
             <AlertCircle size={16} />
             <span className="text-sm font-medium">Save failed</span>
           </div>
@@ -121,7 +121,7 @@ const ProfileSettings = () => {
           <div className="space-y-2">
             <Label
               htmlFor="firstName"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-300"
             >
               First Name
             </Label>
@@ -129,18 +129,18 @@ const ProfileSettings = () => {
               id="firstName"
               value={profileData.firstName}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.firstName ? "border-red-500" : "border-gray-200"
+              className={`w-full px-3 py-2 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+                errors.firstName ? "border-red-500" : "border-gray-600/50"
               }`}
             />
             {errors.firstName && (
-              <p className="text-sm text-red-600">{errors.firstName}</p>
+              <p className="text-sm text-red-400">{errors.firstName}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label
               htmlFor="lastName"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-300"
             >
               Last Name
             </Label>
@@ -148,18 +148,18 @@ const ProfileSettings = () => {
               id="lastName"
               value={profileData.lastName}
               onChange={(e) => handleInputChange("lastName", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.lastName ? "border-red-500" : "border-gray-200"
+              className={`w-full px-3 py-2 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+                errors.lastName ? "border-red-500" : "border-gray-600/50"
               }`}
             />
             {errors.lastName && (
-              <p className="text-sm text-red-600">{errors.lastName}</p>
+              <p className="text-sm text-red-400">{errors.lastName}</p>
             )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-300">
             Email Address
           </Label>
           <Input
@@ -167,30 +167,45 @@ const ProfileSettings = () => {
             type="email"
             value={profileData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-              errors.email ? "border-red-500" : "border-gray-200"
+            className={`w-full px-3 py-2 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+              errors.email ? "border-red-500" : "border-gray-600/50"
             }`}
           />
           {errors.email && (
-            <p className="text-sm text-red-600">{errors.email}</p>
+            <p className="text-sm text-red-400">{errors.email}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="role" className="text-sm font-medium text-gray-300">
             Role
           </Label>
           <Select
             value={profileData.role}
             onValueChange={(value) => handleInputChange("role", value)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-gray-700/60 border-gray-600/50 text-gray-200">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Administrator</SelectItem>
-              <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="user">User</SelectItem>
+            <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectItem
+                value="admin"
+                className="text-gray-200 hover:bg-gray-700"
+              >
+                Administrator
+              </SelectItem>
+              <SelectItem
+                value="manager"
+                className="text-gray-200 hover:bg-gray-700"
+              >
+                Manager
+              </SelectItem>
+              <SelectItem
+                value="user"
+                className="text-gray-200 hover:bg-gray-700"
+              >
+                User
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -198,7 +213,7 @@ const ProfileSettings = () => {
         <Button
           onClick={handleSave}
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-400 disabled:to-blue-500 text-white py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
         >
           {isLoading ? (
             <>

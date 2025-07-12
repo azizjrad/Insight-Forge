@@ -1,14 +1,13 @@
-
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React from "react";
+import { Navigate } from "react-router-dom";
+// Remove auth import
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const user = null; const loading = false;
 
   if (loading) {
     return (
@@ -19,8 +18,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Check if user is logged in (either regular user or admin)
-  const isLoggedIn = localStorage.getItem('user_logged_in') === 'true' || 
-                    localStorage.getItem('admin_logged_in') === 'true';
+  const isLoggedIn =
+    localStorage.getItem("user_logged_in") === "true" ||
+    localStorage.getItem("admin_logged_in") === "true";
 
   if (!isLoggedIn && !user) {
     return <Navigate to="/admin/login" replace />;
@@ -30,3 +30,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

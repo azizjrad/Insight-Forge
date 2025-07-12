@@ -29,14 +29,14 @@ const Footer: React.FC = () => {
               </p>
               {/* Social links */}
               <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer">
-                  <span className="text-sm font-medium">f</span>
+                <div className="w-10 h-10 bg-teal-500/20 hover:bg-teal-500/30 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer border border-teal-500/30">
+                  <span className="text-sm font-medium text-teal-400">f</span>
                 </div>
-                <div className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer">
-                  <span className="text-sm font-medium">in</span>
+                <div className="w-10 h-10 bg-gray-500/20 hover:bg-gray-500/30 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer border border-gray-500/30">
+                  <span className="text-sm font-medium text-gray-400">in</span>
                 </div>
-                <div className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer">
-                  <span className="text-sm font-medium">tw</span>
+                <div className="w-10 h-10 bg-secondary/20 hover:bg-secondary/30 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer border border-secondary/30">
+                  <span className="text-sm font-medium text-secondary">ig</span>
                 </div>
               </div>
             </div>
@@ -177,8 +177,17 @@ const Footer: React.FC = () => {
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
                 />
-                <button className="px-6 py-3 bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-secondary/25">
-                  Subscribe
+                <button className="group relative px-6 py-3 bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-white font-semibold rounded-lg transition-all duration-500 hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-secondary/25 overflow-hidden">
+                  <span className="relative z-10">Subscribe</span>
+
+                  {/* Enhanced glass overlay - same as Start Free Trial button */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-lg"></div>
+
+                  {/* Premium shimmer effect - same as Start Free Trial button */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+
+                  {/* Inner glow with secondary color */}
+                  <div className="absolute inset-0 shadow-inner shadow-secondary/20 rounded-lg transition-all duration-500"></div>
                 </button>
               </div>
             </div>

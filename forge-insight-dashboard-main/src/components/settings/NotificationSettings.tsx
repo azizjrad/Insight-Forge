@@ -176,37 +176,36 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     },
   ];
   return (
-    <Card className="bg-white/80 backdrop-blur-md border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 p-6">
+    <Card className="bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-purple-500/10 rounded-xl">
-          <Bell className="w-6 h-6 text-purple-600" />
+        <div className="p-3 bg-secondary/20 rounded-xl">
+          <Bell className="w-6 h-6 text-secondary" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Notification Settings
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Control how you receive notifications
           </p>
         </div>
         {saveStatus === "success" && (
-          <div className="flex items-center gap-2 text-green-600">
+          <div className="flex items-center gap-2 text-green-400">
             <CheckCircle size={16} />
             <span className="text-sm font-medium">Saved!</span>
           </div>
         )}
         {saveStatus === "error" && (
-          <div className="flex items-center gap-2 text-red-600">
+          <div className="flex items-center gap-2 text-red-400">
             <AlertCircle size={16} />
             <span className="text-sm font-medium">Save failed</span>
           </div>
         )}
-      </div>
-
+      </div>{" "}
       <div className="space-y-6">
         {notificationCategories.map((category, categoryIndex) => (
           <div key={categoryIndex} className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            <h4 className="text-sm font-semibold text-gray-300 border-b border-gray-600/50 pb-2">
               {category.title}
             </h4>
             <div className="space-y-3">
@@ -215,15 +214,20 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 return (
                   <div
                     key={item.key}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-700/40 backdrop-blur-sm rounded-lg hover:bg-gray-700/60 transition-all duration-200 border border-gray-600/30"
                   >
                     <div className="flex items-center gap-3">
-                      <IconComponent className={`w-5 h-5 ${item.color}`} />
+                      <IconComponent
+                        className={`w-5 h-5 ${item.color.replace(
+                          "600",
+                          "400"
+                        )}`}
+                      />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-200">
                           {item.label}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-400">
                           {item.description}
                         </p>
                       </div>
@@ -233,20 +237,19 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                       onCheckedChange={(checked) =>
                         handleNotificationChange(item.key, checked)
                       }
-                      className="data-[state=checked]:bg-purple-600"
+                      className="data-[state=checked]:bg-secondary"
                     />
                   </div>
                 );
               })}
             </div>
           </div>
-        ))}
-
-        <div className="pt-4 border-t border-gray-200">
+        ))}{" "}
+        <div className="pt-4 border-t border-gray-600/50">
           <Button
             onClick={handleSave}
             disabled={isLoading}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary/90 hover:to-accent/90 disabled:from-gray-600 disabled:to-gray-700 text-white py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
           >
             {isLoading ? (
               <>

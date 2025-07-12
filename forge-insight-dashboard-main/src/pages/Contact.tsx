@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Mail,
   MapPin,
@@ -12,45 +13,195 @@ import {
   MessageCircle,
   Users,
   HeadphonesIcon,
+  Award,
+  TrendingUp,
+  BarChart3,
+  Zap,
+  Building,
+  Star,
+  Target,
+  Shield,
+  Headphones,
+  Calendar,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ScrollToTop from "../components/ui/ScrollToTop";
+import { ScrollAnimation } from "../components/ui/ScrollAnimation";
+import LoadingOverlay from "../components/ui/LoadingOverlay";
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
   const [formState, setFormState] = useState({
-    name: "",
+    contactReason: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    subject: "",
+    phone: "",
+    company: "",
+    country: "",
+    businessType: "",
+    propertyCount: "",
+    roomCount: "",
     message: "",
   });
-
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [phoneCountry, setPhoneCountry] = useState("TN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [generalError, setGeneralError] = useState("");
 
+  // Country codes mapping
+  const countryCodes: { [key: string]: string } = {
+    TN: "+216",
+    US: "+1",
+    CA: "+1",
+    UK: "+44",
+    FR: "+33",
+    DE: "+49",
+  };
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
+    const { name, value } = e.target; // If business type changes, reset property count and room count
+    if (name === "businessType") {
+      setFormState({
+        ...formState,
+        [name]: value,
+        propertyCount: "",
+        roomCount: "",
+      });
+    } else {
+      setFormState({ ...formState, [name]: value });
+    } // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+
+    // Clear general error when user starts typing
+    if (generalError) {
+      setGeneralError("");
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleBlur = (fieldName: string) => {
+    setTouched({ ...touched, [fieldName]: true });
+    validateField(fieldName, formState[fieldName as keyof typeof formState]);
+  };
+
+  const validateField = (fieldName: string, value: string) => {
+    let error = "";
+    if (!value.trim()) {
+      switch (fieldName) {
+        case "contactReason":
+          error = "Please complete this required field.";
+          break;
+        case "firstName":
+          error = "Please complete this required field.";
+          break;
+        case "lastName":
+          error = "Please complete this required field.";
+          break;
+        case "email":
+          error = "Please complete this required field.";
+          break;
+        case "phone":
+          error = "Please complete this required field.";
+          break;
+        case "company":
+          error = "Please complete this required field.";
+          break;
+        case "country":
+          error = "Please complete this required field.";
+          break;
+        case "businessType":
+          error = "Please complete this required field.";
+          break;
+        case "message":
+          error = "Please complete this required field.";
+          break;
+        default:
+          error = "This field is required.";
+      }
+    } else if (fieldName === "email" && value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        error = "Please enter a valid email address.";
+      }
+    } else if (fieldName === "phone" && value.trim()) {
+      const phoneRegex = /^\+?[\d\s\-()]{8,}$/;
+      if (!phoneRegex.test(value)) {
+        error = "Please enter a valid phone number.";
+      }
+    }
+
+    setErrors({ ...errors, [fieldName]: error });
+    return error === "";
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Validate all required fields
+    const requiredFields = [
+      "contactReason",
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "company",
+      "country",
+      "businessType",
+      "message",
+    ];
+    const newErrors: { [key: string]: string } = {};
+    let isValid = true;
+
+    requiredFields.forEach((field) => {
+      if (!validateField(field, formState[field as keyof typeof formState])) {
+        isValid = false;
+      }
+    });
+    if (!isValid) {
+      setTouched(
+        requiredFields.reduce((acc, field) => ({ ...acc, [field]: true }), {})
+      );
+      setGeneralError("Please complete all required fields");
+
+      // Scroll to top of form
+      const formElement = document.getElementById("contact-form");
+      if (formElement) {
+        formElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+      return;
+    }
+
+    // Clear general error if validation passes
+    setGeneralError("");
+
     setIsSubmitting(true);
 
-    // Simulate form submission
+    // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      setIsSubmitted(true);
+      setIsSubmitted(true); // Reset form
       setFormState({
-        name: "",
+        contactReason: "",
+        firstName: "",
+        lastName: "",
         email: "",
-        subject: "",
+        phone: "",
+        company: "",
+        country: "",
+        businessType: "",
+        propertyCount: "",
+        roomCount: "",
         message: "",
       });
+      setErrors({});
+      setTouched({});
 
       // Reset submission status after a few seconds
       setTimeout(() => {
@@ -58,501 +209,876 @@ const Contact: React.FC = () => {
       }, 5000);
     }, 1500);
   };
-
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in overflow-hidden relative">
+      <LoadingOverlay
+        isVisible={isSubmitting}
+        message="Sending your message..."
+        fullScreen={false}
+      />
       {/* Enhanced Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary via-primary/95 to-secondary text-white py-20 md:py-28 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-white/5 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute top-40 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-delayed"></div>
-          <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-float"></div>
+      <section className="relative bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-white py-20 md:py-24 lg:py-28 overflow-hidden min-h-[80vh] flex items-center">
+        {/* Enhanced Background decorations */}
+        <div className="absolute inset-0 opacity-15">
+          <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-white/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-orange-500/20 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl animate-pulse animation-delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-teal-500/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl animate-float"></div>
         </div>
-
-        <div className="container-custom relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 animate-fade-in-up">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              <span className="text-sm font-medium">Get in Touch</span>
+        {/* Enhanced Floating elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-32 left-16 animate-float">
+            <MessageCircle size={32} className="text-white/20" />
+          </div>
+          <div className="absolute top-1/4 right-24 animate-float-delayed">
+            <Mail size={40} className="text-orange-400/30" />
+          </div>
+          <div className="absolute bottom-1/3 left-24 animate-bounce-slow">
+            <Phone size={36} className="text-teal-500/30" />
+          </div>
+          <div className="absolute top-1/3 left-1/3 animate-float">
+            <Users size={28} className="text-white/15" />
+          </div>
+          <div className="absolute bottom-1/4 right-1/3 animate-float-delayed">
+            <Send size={24} className="text-orange-400/25" />
+          </div>
+        </div>
+        <div className="container-custom relative z-10 w-full">
+          <div className="max-w-6xl mx-auto text-center">
+            {" "}
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 hover:border-white/30 px-6 py-3 rounded-full mb-8 animate-fade-in-up transition-all duration-300 shadow-lg">
+              <MessageCircle size={20} className="text-secondary" />
+              <span className="text-sm font-semibold text-white">
+                Get in Touch with Our Team
+              </span>
             </div>
-
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-gray-200 bg-clip-text text-transparent animate-fade-in-up animation-delay-200">
-              {t("contact.title") || "Contact Us"}
-            </h1>
-
-            <p className="text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed animate-fade-in-up animation-delay-400">
-              {t("contact.subtitle") ||
-                "We're here to help you transform your data into insights"}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 bg-gradient-to-r from-white via-white to-gray-100 bg-clip-text text-transparent leading-tight">
+              Let's Build Something
+              <span className="block bg-gradient-to-r from-orange-400 via-orange-300 to-yellow-400 bg-clip-text text-transparent">
+                Amazing Together
+              </span>
+            </h1>{" "}
+            <p className="text-2xl md:text-3xl font-semibold mb-8 animate-fade-in-up animation-delay-400 text-secondary">
+              Ready to transform your data into actionable insights?
             </p>
-
-            {/* Quick Contact Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-600">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">
-                  &lt;24hrs
+            <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed animate-fade-in-up animation-delay-600 max-w-4xl mx-auto">
+              Our team of experts is here to help you succeed with custom
+              solutions tailored to your business needs.
+            </p>
+            {/* Enhanced CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in-up animation-delay-800">
+              {" "}
+              <button
+                onClick={() => {
+                  const contactForm = document.getElementById("contact-form");
+                  if (contactForm) {
+                    contactForm.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                      inline: "nearest",
+                    });
+                  }
+                }}
+                className="group relative px-8 py-4 bg-secondary border-2 border-secondary text-white font-semibold rounded-xl hover:bg-secondary/90 hover:border-secondary/90 hover:scale-105 transition-all duration-300 backdrop-blur-sm overflow-hidden shadow-lg hover:shadow-2xl cursor-pointer"
+              >
+                {/* Enhanced glass overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-xl"></div>
+                {/* Premium shimmer effect */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>{" "}
+                <div className="relative flex items-center justify-center">
+                  <span>Contact us</span>
                 </div>
-                <div className="text-sm text-gray-300">Response Time</div>
+              </button>{" "}
+              <a
+                href="#quick-contact"
+                className="group relative px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/20 hover:border-white/50 hover:scale-105 transition-all duration-300 overflow-hidden shadow-lg"
+              >
+                {/* Enhanced glass overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-xl"></div>
+                {/* Premium shimmer effect */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>{" "}
+                <div className="relative flex items-center justify-center">
+                  <span>Quick Call</span>
+                </div>
+              </a>
+            </div>{" "}
+            {/* Enhanced feature highlights */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in-up animation-delay-1000">
+              <div className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl mb-4 group-hover:bg-white/80 group-hover:scale-110 transition-all duration-300 shadow-lg border border-white/40">
+                  <Award size={24} className="text-gray-900" />
+                </div>
+                <p className="text-white/90 font-medium text-sm">Expert Team</p>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                <div className="text-sm text-gray-300">Support Available</div>
+              <div className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl mb-4 group-hover:bg-white/80 group-hover:scale-110 transition-all duration-300 shadow-lg border border-white/40">
+                  <Clock size={24} className="text-gray-600" />
+                </div>
+                <p className="text-white/90 font-medium text-sm">
+                  24/7 Support
+                </p>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">100%</div>
-                <div className="text-sm text-gray-300">Satisfaction Goal</div>
+              <div className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl mb-4 group-hover:bg-white/80 group-hover:scale-110 transition-all duration-300 shadow-lg border border-white/40">
+                  <Globe size={24} className="text-secondary" />
+                </div>
+                <p className="text-white/90 font-medium text-sm">
+                  Global Reach
+                </p>
+              </div>
+              <div className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl mb-4 group-hover:bg-white/80 group-hover:scale-110 transition-all duration-300 shadow-lg border border-white/40">
+                  <TrendingUp size={24} className="text-teal-500" />
+                </div>
+                <p className="text-white/90 font-medium text-sm">
+                  Proven Results
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </div>{" "}
       </section>
 
-      {/* Enhanced Contact Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Enhanced Contact Information */}
-            <div className="space-y-8">
-              <div>
-                <div className="inline-flex items-center bg-primary/10 rounded-full px-4 py-2 mb-4">
-                  <Users className="w-5 h-5 mr-2 text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    Contact Information
+      {/* Professional Contact Form Section */}
+      <ScrollAnimation>
+        <section
+          id="contact-form"
+          className="py-20 bg-white relative overflow-hidden"
+        >
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 right-20 w-32 h-32 bg-secondary/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 left-20 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-secondary/3 to-primary/3 rounded-full blur-3xl"></div>
+          </div>{" "}
+          <div className="container-custom relative z-10">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary via-orange-500 to-primary">
+                    Contact us
                   </span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  {t("contact.getInTouch") || "Get in Touch"}
                 </h2>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  {t("contact.description") ||
-                    "Ready to unlock the power of your data? Our team is here to help you every step of the way."}
+                <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+                  Get connected with the Lighthouse team by completing the form
+                  below, and we'll be in touch soon.
                 </p>
               </div>
-
-              <div className="space-y-6">
-                {/* Office Address */}
-                <div className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start">
-                    <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
-                      <MapPin className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Office Address
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        ESEN Manouba Campus
-                        <br />
-                        Manouba University
-                        <br />
-                        Tunisia
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start">
-                    <div className="p-3 bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl group-hover:from-accent/20 group-hover:to-accent/10 transition-all duration-300">
-                      <Phone className="w-6 h-6 text-accent" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Phone Support
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        (+216) 71 123 456
-                        <br />
-                        Monday - Friday, 9am - 6pm CET
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start">
-                    <div className="p-3 bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl group-hover:from-secondary/20 group-hover:to-secondary/10 transition-all duration-300">
-                      <Mail className="w-6 h-6 text-secondary" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Email Support
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        contact@insightforge.com
-                        <br />
-                        support@insightforge.com
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Business Hours */}
-                <div className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start">
-                    <div className="p-3 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl group-hover:from-purple-500/20 group-hover:to-purple-500/10 transition-all duration-300">
-                      <Clock className="w-6 h-6 text-purple-500" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Business Hours
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        Mon - Fri: 9:00 AM - 6:00 PM
-                        <br />
-                        Weekend: Emergency support only
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Contact Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10 relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl"></div>
-
-                <div className="relative z-10">
-                  <div className="mb-8">
-                    <div className="inline-flex items-center bg-primary/10 rounded-full px-4 py-2 mb-4">
-                      <Send className="w-5 h-5 mr-2 text-primary" />
-                      <span className="text-sm font-medium text-primary">
-                        Send Message
-                      </span>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                      {t("contact.sendMessage") || "Send us a Message"}
-                    </h2>
-                    <p className="text-gray-600">
-                      Fill out the form below and we'll get back to you as soon
-                      as possible.
-                    </p>
-                  </div>
-
+              <div className="relative">
+                {/* Subtle background decoration */}
+                <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-secondary/10 to-primary/10 rounded-full blur-2xl"></div>
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-2xl"></div>{" "}
+                <div className="relative bg-white rounded-2xl p-8 md:p-10">
                   {isSubmitted ? (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-800 p-6 rounded-2xl flex items-center mb-6">
-                      <div className="p-2 bg-green-100 rounded-full mr-4">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
+                    <div className="text-center py-16 animate-fade-in">
+                      {" "}
+                      <div className="relative inline-flex items-center justify-center w-24 h-24 bg-secondary/10 backdrop-blur-sm rounded-full mx-auto mb-8 overflow-hidden border border-secondary/20">
+                        <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-secondary/30 animate-pulse"></div>
+                        <CheckCircle className="w-12 h-12 text-secondary relative z-10" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold mb-1">
-                          Message Sent Successfully!
-                        </h3>
-                        <p className="text-sm text-green-700">
-                          {t("contact.success") ||
-                            "Thank you for your message. We'll respond within 24 hours."}
-                        </p>
+                      <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                        Message Sent Successfully!
+                      </h3>
+                      <p className="text-xl text-gray-600 leading-relaxed max-w-md mx-auto">
+                        Thank you for reaching out. We'll get back to you within
+                        24 hours with a personalized response.
+                      </p>{" "}
+                      <div className="mt-8 grid grid-cols-3 gap-4 max-w-sm mx-auto">
+                        <div className="flex items-center gap-2 p-3 bg-secondary/10 backdrop-blur-sm rounded-xl border border-secondary/20 hover:bg-secondary/15 transition-all duration-300">
+                          <Clock size={16} className="text-secondary" />
+                          <span className="text-sm font-medium text-gray-700">
+                            24h
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 p-3 bg-secondary/10 backdrop-blur-sm rounded-xl border border-secondary/20 hover:bg-secondary/15 transition-all duration-300">
+                          <Users size={16} className="text-secondary" />
+                          <span className="text-sm font-medium text-gray-700">
+                            Expert
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 p-3 bg-secondary/10 backdrop-blur-sm rounded-xl border border-secondary/20 hover:bg-secondary/15 transition-all duration-300">
+                          <Target size={16} className="text-secondary" />
+                          <span className="text-sm font-medium text-gray-700">
+                            Custom
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label
-                            htmlFor="name"
-                            className="block text-sm font-semibold text-gray-900 mb-2"
-                          >
-                            {t("contact.name") || "Full Name"} *
-                          </label>
-                          <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formState.name}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300"
-                            placeholder="Enter your full name"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="email"
-                            className="block text-sm font-semibold text-gray-900 mb-2"
-                          >
-                            {t("contact.email") || "Email Address"} *
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formState.email}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300"
-                            placeholder="Enter your email address"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="subject"
-                          className="block text-sm font-semibold text-gray-900 mb-2"
-                        >
-                          {t("contact.subject") || "Subject"} *
-                        </label>
+                    <form
+                      onSubmit={handleSubmit}
+                      className="space-y-6"
+                      noValidate
+                    >
+                      {/* Contact Reason */}
+                      <div className="relative">
+                        {" "}
                         <select
-                          id="subject"
-                          name="subject"
-                          value={formState.subject}
+                          name="contactReason"
+                          value={formState.contactReason}
                           onChange={handleChange}
+                          onBlur={() => handleBlur("contactReason")}
                           required
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300 bg-white"
+                          className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 bg-gray-50 focus:bg-gray-50 appearance-none text-gray-900 pr-12 focus:outline-none ${
+                            errors.contactReason && touched.contactReason
+                              ? "border-secondary"
+                              : "border-gray-300"
+                          }`}
                         >
-                          <option value="">Please select a subject</option>
-                          <option value="General Inquiry">
-                            General Inquiry
+                          {" "}
+                          <option value="" disabled>
+                            What would you like to contact us about? *
                           </option>
-                          <option value="Sales Question">Sales Question</option>
+                          <option value="General">General</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Sales & pricing">
+                            Sales & pricing
+                          </option>
+                          <option value="Marketing & PR">Marketing & PR</option>
+                          <option value="Careers">Careers</option>
                           <option value="Technical Support">
                             Technical Support
                           </option>
-                          <option value="Partnership Opportunity">
-                            Partnership Opportunity
+                          <option value="Partnership">Partnership</option>
+                        </select>
+                        {formState.contactReason !== "" && (
+                          <label className="absolute left-4 -top-2 text-secondary text-sm bg-white px-2 pointer-events-none">
+                            What would you like to contact us about? *
+                          </label>
+                        )}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
+                        {errors.contactReason && touched.contactReason && (
+                          <p className="mt-2 text-sm text-secondary">
+                            {errors.contactReason}
+                          </p>
+                        )}
+                      </div>
+                      {/* Name Fields */}
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div className="relative">
+                          {" "}
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={formState.firstName}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur("firstName")}
+                            required
+                            className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer focus:outline-none ${
+                              errors.firstName && touched.firstName
+                                ? "border-secondary"
+                                : "border-gray-300"
+                            }`}
+                            placeholder=" "
+                          />
+                          <label className="absolute left-6 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                            First Name *
+                          </label>
+                          {errors.firstName && touched.firstName && (
+                            <p className="mt-2 text-sm text-secondary">
+                              {errors.firstName}
+                            </p>
+                          )}
+                        </div>
+                        <div className="relative">
+                          {" "}
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={formState.lastName}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur("lastName")}
+                            required
+                            className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer focus:outline-none ${
+                              errors.lastName && touched.lastName
+                                ? "border-secondary"
+                                : "border-gray-300"
+                            }`}
+                            placeholder=" "
+                          />
+                          <label className="absolute left-6 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                            Last Name *
+                          </label>
+                          {errors.lastName && touched.lastName && (
+                            <p className="mt-2 text-sm text-secondary">
+                              {errors.lastName}
+                            </p>
+                          )}
+                        </div>
+                      </div>{" "}
+                      {/* Business Email and Company Name */}
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div className="relative">
+                          {" "}
+                          <input
+                            type="email"
+                            name="email"
+                            value={formState.email}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur("email")}
+                            required
+                            className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer focus:outline-none ${
+                              errors.email && touched.email
+                                ? "border-secondary"
+                                : "border-gray-300"
+                            }`}
+                            placeholder=" "
+                          />
+                          <label className="absolute left-6 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                            Business Email *
+                          </label>
+                          {errors.email && touched.email && (
+                            <p className="mt-2 text-sm text-secondary">
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+                        <div className="relative">
+                          {" "}
+                          <input
+                            type="text"
+                            name="company"
+                            value={formState.company}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur("company")}
+                            required
+                            className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer focus:outline-none ${
+                              errors.company && touched.company
+                                ? "border-secondary"
+                                : "border-gray-300"
+                            }`}
+                            placeholder=" "
+                          />
+                          <label className="absolute left-6 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                            Company/Hotel Name *
+                          </label>
+                          {errors.company && touched.company && (
+                            <p className="mt-2 text-sm text-secondary">
+                              {errors.company}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {/* Country */}
+                      <div className="relative">
+                        {" "}
+                        <select
+                          name="country"
+                          value={formState.country}
+                          onChange={handleChange}
+                          onBlur={() => handleBlur("country")}
+                          required
+                          className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 appearance-none pr-12 focus:outline-none ${
+                            errors.country && touched.country
+                              ? "border-secondary"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <option value="" disabled>
+                            Country *
                           </option>
-                          <option value="Demo Request">Demo Request</option>
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                          <option value="UK">United Kingdom</option>
+                          <option value="FR">France</option>
+                          <option value="DE">Germany</option>
+                          <option value="ES">Spain</option>
+                          <option value="IT">Italy</option>
+                          <option value="AU">Australia</option>
+                          <option value="JP">Japan</option>
+                          <option value="TN">Tunisia</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                        {formState.country !== "" && (
+                          <label className="absolute left-4 -top-2 text-secondary text-sm bg-white px-2 pointer-events-none">
+                            Country *
+                          </label>
+                        )}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
+                        {errors.country && touched.country && (
+                          <p className="mt-2 text-sm text-secondary">
+                            {errors.country}
+                          </p>
+                        )}
+                      </div>
+                      {/* Phone Number */}
+                      <div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="relative">
+                            {" "}
+                            <select
+                              value={phoneCountry}
+                              onChange={(e) => setPhoneCountry(e.target.value)}
+                              className="w-full px-4 py-5 border rounded-2xl focus:border-black bg-gray-50 focus:bg-gray-50 text-gray-900 appearance-none pr-10 border-gray-300 focus:outline-none"
+                            >
+                              <option value="TN">Tunisia</option>
+                              <option value="US">United States</option>
+                              <option value="CA">Canada</option>
+                              <option value="UK">United Kingdom</option>
+                              <option value="FR">France</option>
+                              <option value="DE">Germany</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                          <div className="col-span-2 relative">
+                            <div className="absolute left-6 top-4 text-gray-700 z-10 pointer-events-none">
+                              {countryCodes[phoneCountry]}
+                            </div>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={formState.phone}
+                              onChange={handleChange}
+                              onBlur={() => handleBlur("phone")}
+                              required
+                              className={`w-full pl-20 pr-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer focus:outline-none ${
+                                errors.phone && touched.phone
+                                  ? "border-secondary"
+                                  : "border-gray-300"
+                              }`}
+                              placeholder=" "
+                            />
+                            <label className="absolute left-20 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                              Phone number *
+                            </label>
+                          </div>
+                        </div>
+                        {errors.phone && touched.phone && (
+                          <p className="mt-2 text-sm text-secondary">
+                            {errors.phone}
+                          </p>
+                        )}
+                      </div>
+                      {/* Business Type */}
+                      <div className="relative">
+                        {" "}
+                        <select
+                          name="businessType"
+                          value={formState.businessType}
+                          onChange={handleChange}
+                          onBlur={() => handleBlur("businessType")}
+                          required
+                          className={`w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 bg-gray-50 focus:bg-gray-50 appearance-none text-gray-900 pr-12 focus:outline-none ${
+                            errors.businessType && touched.businessType
+                              ? "border-secondary"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <option value="" disabled>
+                            What's your business type? *
+                          </option>
+                          <option value="Hotel">Hotel</option>
+                          <option value="Resort">Resort</option>
+                          <option value="Boutique Hotel">Boutique Hotel</option>
+                          <option value="Chain Hotel">Chain Hotel</option>
+                          <option value="B&B">Bed & Breakfast</option>
+                          <option value="Vacation Rental">
+                            Vacation Rental
+                          </option>
                           <option value="Other">Other</option>
                         </select>
+                        {formState.businessType !== "" && (
+                          <label className="absolute left-4 -top-2 text-secondary text-sm bg-white px-2 pointer-events-none">
+                            What's your business type? *
+                          </label>
+                        )}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
+                        {errors.businessType && touched.businessType && (
+                          <p className="mt-2 text-sm text-secondary">
+                            {errors.businessType}
+                          </p>
+                        )}
                       </div>
-
-                      <div>
-                        <label
-                          htmlFor="message"
-                          className="block text-sm font-semibold text-gray-900 mb-2"
-                        >
-                          {t("contact.message") || "Message"} *
-                        </label>
+                      {/* Property Count - Shows only when Chain Hotel is selected */}
+                      {formState.businessType === "Chain Hotel" && (
+                        <div className="animate-in slide-in-from-top-2 duration-300 relative">
+                          {" "}
+                          <select
+                            name="propertyCount"
+                            value={formState.propertyCount}
+                            onChange={handleChange}
+                            className="w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 bg-gray-50 focus:bg-gray-50 appearance-none text-gray-900 pr-12 border-gray-300 focus:outline-none"
+                          >
+                            <option value="" disabled>
+                              How many properties do you have?
+                            </option>
+                            <option value="2-5">2-5 properties</option>
+                            <option value="6-10">6-10 properties</option>
+                            <option value="11-25">11-25 properties</option>
+                            <option value="26-50">26-50 properties</option>
+                            <option value="51-100">51-100 properties</option>
+                            <option value="100+">100+ properties</option>
+                          </select>
+                          {formState.propertyCount !== "" && (
+                            <label className="absolute left-4 -top-2 text-secondary text-sm bg-white px-2 pointer-events-none">
+                              How many properties do you have?
+                            </label>
+                          )}
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      )}{" "}
+                      {/* Room Count - Shows only when business type is selected */}
+                      {formState.businessType && (
+                        <div className="animate-in slide-in-from-top-2 duration-300 relative">
+                          {" "}
+                          <select
+                            name="roomCount"
+                            value={formState.roomCount}
+                            onChange={handleChange}
+                            className="w-full px-6 py-5 border rounded-2xl focus:border-black transition-all duration-300 bg-gray-50 focus:bg-gray-50 appearance-none text-gray-900 pr-12 border-gray-300 focus:outline-none"
+                          >
+                            <option value="" disabled>
+                              How many rooms do you have?
+                            </option>
+                            <option value="1-10">1-10 rooms</option>
+                            <option value="11-25">11-25 rooms</option>
+                            <option value="26-50">26-50 rooms</option>
+                            <option value="51-100">51-100 rooms</option>
+                            <option value="101-250">101-250 rooms</option>
+                            <option value="251-500">251-500 rooms</option>
+                            <option value="500+">500+ rooms</option>
+                          </select>
+                          {formState.roomCount !== "" && (
+                            <label className="absolute left-4 -top-2 text-secondary text-sm bg-white px-2 pointer-events-none">
+                              How many rooms do you have?
+                            </label>
+                          )}
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      )}{" "}
+                      {/* Message */}
+                      <div className="relative">
+                        {" "}
                         <textarea
-                          id="message"
                           name="message"
                           value={formState.message}
                           onChange={handleChange}
+                          onBlur={() => handleBlur("message")}
                           required
-                          rows={5}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:border-gray-300 resize-none"
-                          placeholder="Tell us about your project or how we can help..."
-                        ></textarea>
-                      </div>
-
-                      <div>
+                          rows={6}
+                          className={`w-full px-6 py-4 border rounded-2xl focus:border-black transition-all duration-300 text-gray-900 bg-gray-50 focus:bg-gray-50 peer resize-none focus:outline-none ${
+                            errors.message && touched.message
+                              ? "border-secondary"
+                              : "border-gray-300"
+                          }`}
+                          placeholder=" "
+                        />
+                        <label className="absolute left-6 top-4 text-gray-700 transition-all duration-300 peer-focus:text-sm peer-focus:-top-2 peer-focus:left-4 peer-focus:bg-white peer-focus:px-2 peer-focus:text-secondary peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-4 peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:text-secondary pointer-events-none">
+                          Message *
+                        </label>
+                        {errors.message && touched.message && (
+                          <p className="mt-2 text-sm text-secondary">
+                            {errors.message}
+                          </p>
+                        )}
+                      </div>{" "}
+                      {/* Privacy Policy Notice */}
+                      <div className="text-left">
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          By submitting your details, you confirm that you would
+                          like to receive marketing emails from InsightForge and
+                          you agree to the storing and processing of your
+                          personal data by Lighthouse as described in our{" "}
+                          <Link
+                            to="/privacy"
+                            className="font-bold text-gray-800 underline hover:text-secondary transition-colors duration-300"
+                          >
+                            privacy policy
+                          </Link>
+                          .
+                        </p>
+                        {generalError && (
+                          <p className="text-red-500 text-sm mt-3 font-medium text-left">
+                            {generalError}
+                          </p>
+                        )}
+                      </div>{" "}
+                      {/* Submit Button */}
+                      <div className="pt-4">
                         <button
                           type="submit"
                           disabled={isSubmitting}
-                          className={`group w-full bg-gradient-to-r from-primary to-primary/90 text-white px-8 py-4 rounded-xl font-semibold hover:from-primary/90 hover:to-primary transition-all duration-300 hover:scale-[1.02] hover:shadow-lg inline-flex items-center justify-center ${
-                            isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-                          }`}
+                          className="group relative w-full px-12 py-4 bg-gradient-to-r from-primary via-primary to-secondary text-white font-bold rounded-full shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 overflow-hidden flex items-center justify-center gap-4 hover:scale-105 text-lg"
                         >
-                          {isSubmitting ? (
-                            <>
-                              <svg
-                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
-                              {t("contact.sending") || "Sending Message..."}
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-                              {t("contact.send") || "Send Message"}
-                            </>
-                          )}
+                          {" "}
+                          <span className="relative z-10">
+                            {isSubmitting ? (
+                              <>
+                                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin inline-block mr-2" />
+                                Sending Message...
+                              </>
+                            ) : (
+                              "Contact us"
+                            )}
+                          </span>
+                          {/* Enhanced animated background */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          {/* Premium shimmer effect */}
+                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
                         </button>
-                      </div>
+                      </div>{" "}
                     </form>
-                  )}
+                  )}{" "}
                 </div>
               </div>
-            </div>
+            </div>{" "}
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollAnimation>
 
-      {/* Quick Help Section */}
-      <section className="py-16 bg-white">
-        <div className="container-custom max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center bg-accent/10 rounded-full px-4 py-2 mb-4">
-              <HeadphonesIcon className="w-5 h-5 mr-2 text-accent" />
-              <span className="text-sm font-medium text-accent">
-                Quick Support
-              </span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Multiple Ways to Reach Us
-            </h2>
-            <p className="text-xl text-gray-600">
-              Choose the best option for your needs
-            </p>
+      {/* Enhanced Office Information */}
+      <ScrollAnimation>
+        <section
+          id="quick-contact"
+          className="py-24 bg-white relative overflow-hidden"
+        >
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-20 w-32 h-32 bg-primary/5 rounded-full blur-2xl animate-float"></div>
+            <div className="absolute bottom-20 right-20 w-40 h-40 bg-secondary/5 rounded-full blur-3xl animate-float-delayed"></div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Live Chat */}
-            <div className="group bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                <MessageCircle className="w-8 h-8" />
+          <div className="container-custom relative z-10">
+            <div className="max-w-5xl mx-auto">
+              {" "}
+              <div className="text-center mb-16">
+                {" "}
+                <h2 className="text-4xl md:text-5xl font-bold mb-8 text-gray-900">
+                  Visit Our{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-teal-500">
+                    Modern Office
+                  </span>
+                </h2>
+                <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+                  Located in the heart of the business district, our office is
+                  easily accessible and equipped with modern meeting facilities.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Live Chat Support
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Get instant help from our support team. Available during
-                business hours for urgent issues.
-              </p>
-              <button className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors inline-flex items-center group">
-                Start Chat
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* Documentation */}
-            <div className="group bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent group-hover:text-white transition-colors duration-300">
-                <Globe className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Documentation
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Browse our comprehensive guides, tutorials, and API
-                documentation.
-              </p>
-              <button className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent/90 transition-colors inline-flex items-center group">
-                View Docs
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* Community */}
-            <div className="group bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary group-hover:text-white transition-colors duration-300">
-                <Users className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Community Forum
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Join discussions with other users and learn best practices from
-                the community.
-              </p>
-              <button className="bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors inline-flex items-center group">
-                Join Community
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Map Section */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center bg-secondary/10 rounded-full px-4 py-2 mb-4">
-              <MapPin className="w-5 h-5 mr-2 text-secondary" />
-              <span className="text-sm font-medium text-secondary">
-                Location
-              </span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Visit Our Campus
-            </h2>
-            <p className="text-xl text-gray-600">
-              Located at ESEN Manouba, Tunisia
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <div className="aspect-[21/9] max-h-[400px] bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl shadow-lg overflow-hidden relative">
-              {/* Enhanced Map Placeholder */}
-              <div className="h-full w-full flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10"></div>
-                <div className="relative z-10 text-center">
-                  <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <MapPin size={40} className="text-secondary" />
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-8">
+                  <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-500">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 bg-primary/10 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <MapPin className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Office Address
+                        </h3>
+                        <p className="text-gray-600 leading-relaxed text-lg">
+                          123 Business Center Drive
+                          <br />
+                          Suite 456, Tech Tower
+                          <br />
+                          San Francisco, CA 94105
+                          <br />
+                          United States
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    ESEN Manouba
-                  </h3>
-                  <p className="text-gray-600">Interactive map coming soon</p>
+
+                  <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-500">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 bg-green-100 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <Clock className="w-8 h-8 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Business Hours
+                        </h3>
+                        <div className="space-y-2 text-gray-600 text-lg">
+                          <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                          <p>Saturday: 10:00 AM - 4:00 PM</p>
+                          <p>Sunday: Closed</p>
+                          <p className="text-green-600 font-semibold mt-4 flex items-center gap-2">
+                            <Shield size={16} />
+                            24/7 Emergency Support Available
+                          </p>
+                        </div>
+                      </div>
+                    </div>{" "}
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="relative animate-float">
+                    {/* Enhanced floating background elements */}
+                    <div className="absolute -top-8 -left-8 w-24 h-24 bg-orange-500/10 rounded-full blur-xl"></div>
+                    <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary/10 rounded-full blur-xl"></div>
+
+                    <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50 hover:bg-white/90 hover:shadow-3xl hover:scale-105 transition-all duration-500">
+                      <div className="aspect-square bg-gradient-to-br from-primary/10 via-secondary/10 to-teal-500/10 rounded-2xl flex items-center justify-center relative overflow-hidden">
+                        {/* Enhanced animated background pattern */}
+                        <div className="absolute inset-0 opacity-30">
+                          <div className="absolute top-8 left-8 w-12 h-12 bg-orange-500/20 rounded rotate-45 animate-pulse"></div>
+                          <div className="absolute top-16 right-16 w-10 h-10 bg-secondary/20 rounded-full animate-bounce"></div>
+                          <div className="absolute bottom-16 left-16 w-14 h-14 bg-teal-500/20 rounded-lg rotate-12 animate-pulse"></div>
+                          <div className="absolute bottom-8 right-8 w-8 h-8 bg-orange-500/20 rounded-full animate-bounce animation-delay-500"></div>
+                        </div>
+
+                        <div className="relative z-10 text-center">
+                          <div className="inline-flex items-center justify-center w-28 h-28 bg-gradient-to-br from-primary to-secondary rounded-full mb-8 shadow-2xl hover:scale-110 transition-transform duration-300">
+                            <MapPin size={56} className="text-white" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                            Interactive Map
+                          </h3>
+                          <p className="text-gray-600 mb-8 text-lg">
+                            Click to view our location on Google Maps
+                          </p>
+                          <button className="group bg-primary text-white px-8 py-4 rounded-2xl hover:bg-primary/90 transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105">
+                            <Globe className="w-6 h-6" />
+                            <span className="font-semibold">View on Map</span>
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </div>{" "}
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollAnimation>
 
       {/* Enhanced CTA Section */}
-      <section className="relative py-20 bg-gradient-to-br from-gray-900 via-primary to-gray-900 text-white overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-40 h-40 bg-accent/20 rounded-full blur-xl animate-bounce-slow"></div>
-          <div className="absolute bottom-20 right-20 w-60 h-60 bg-secondary/20 rounded-full blur-xl animate-float"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-float-delayed"></div>
-        </div>
-
-        <div className="container-custom relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
-              <Sparkles className="w-5 h-5 mr-2" />
-              <span className="text-sm font-medium">Ready to Get Started?</span>
-            </div>
-
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
-              Let's Transform Your Data Together
-            </h2>
-
-            <p className="text-xl text-gray-200 mb-8 leading-relaxed">
-              Join hundreds of businesses already using InsightForge to make
-              data-driven decisions
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <button className="group bg-white text-primary px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 inline-flex items-center shadow-lg">
-                <MessageCircle className="w-5 h-5 mr-3" />
-                Schedule Demo
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-
-              <button className="group relative px-8 py-4 bg-gradient-to-r from-secondary to-secondary/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden inline-flex items-center">
-                <span className="relative z-10 flex items-center gap-2">
-                  Start Free Trial
-                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                </span>
-
-                {/* Animated background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                {/* Shimmer effect */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-              </button>
-            </div>
+      <ScrollAnimation>
+        <section className="relative py-24 bg-gradient-to-br from-primary via-primary/95 to-secondary overflow-hidden">
+          {/* Enhanced background decorations */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/20 rounded-full translate-x-1/4 -translate-y-1/4 blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-orange-500/20 rounded-full -translate-x-1/4 translate-y-1/4 blur-3xl animate-pulse animation-delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-teal-500/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl animate-float"></div>
           </div>
-        </div>
-      </section>
 
-      {/* Scroll to top button */}
+          <div className="container-custom relative z-10">
+            {" "}
+            <div className="max-w-5xl mx-auto text-center">
+              {" "}
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 animate-fade-in-up animation-delay-200 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent leading-tight">
+                Let's Transform Your Data Together
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed animate-fade-in-up animation-delay-400 max-w-4xl mx-auto">
+                Join hundreds of businesses already using InsightForge to make
+                data-driven decisions and unlock their full potential.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-8 justify-center items-center animate-fade-in-up animation-delay-600">
+                {" "}
+                <Link
+                  to="/register"
+                  className="group relative px-10 py-5 bg-secondary border-2 border-secondary text-white font-bold rounded-2xl hover:bg-secondary/90 hover:border-secondary/90 hover:scale-105 transition-all duration-300 backdrop-blur-sm overflow-hidden shadow-xl hover:shadow-2xl text-lg"
+                >
+                  {/* Enhanced glass overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                  {/* Premium shimmer effect */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>{" "}
+                  <div className="relative flex items-center justify-center">
+                    <span>Start Free Trial</span>
+                  </div>
+                </Link>{" "}
+                <Link
+                  to="/contact-sales"
+                  className="group relative px-10 py-5 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/20 hover:border-white/50 hover:scale-105 transition-all duration-300 overflow-hidden shadow-xl text-lg"
+                >
+                  {/* Enhanced glass overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                  {/* Premium shimmer effect */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>{" "}
+                  <div className="relative flex items-center justify-center">
+                    <span>Schedule Demo</span>
+                  </div>
+                </Link>
+              </div>
+            </div>{" "}
+          </div>
+        </section>
+      </ScrollAnimation>
+
       <ScrollToTop />
     </div>
   );

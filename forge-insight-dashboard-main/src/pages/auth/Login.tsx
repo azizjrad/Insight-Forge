@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import Logo from "../../components/layout/Logo";
 
 const Login: React.FC = () => {
@@ -13,11 +14,10 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, signIn } = useAuth();
 
   // Check if user is already logged in
-  const isLoggedIn = localStorage.getItem("user_logged_in") === "true";
-
-  if (isLoggedIn) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -25,17 +25,19 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simple demo authentication
-    if (email && password) {
-      localStorage.setItem("user_logged_in", "true");
-      localStorage.setItem(
-        "user_data",
-        JSON.stringify({ email, name: "Demo User" })
-      );
-      toast.success("Successfully signed in");
-      navigate("/dashboard");
-    } else {
-      toast.error("Please enter email and password");
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast.error("Please enter valid email and password");
+      } else {
+        toast.success("Successfully signed in");
+        // Small delay to ensure auth context is updated
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 100);
+      }
+    } catch (error) {
+      toast.error("An error occurred during login");
     }
 
     setIsLoading(false);
@@ -58,17 +60,6 @@ const Login: React.FC = () => {
 
       <div className="relative z-10 flex flex-col justify-center py-12 sm:px-6 lg:px-8 min-h-screen">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          {/* Back to Home Button */}
-          <div className="flex justify-center mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors duration-300 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
-              Back to Home
-            </Link>
-          </div>
-
           <div className="flex justify-center mb-6">
             <Logo variant="white" />
           </div>
@@ -76,15 +67,6 @@ const Login: React.FC = () => {
           <div className="text-center mb-8">
             <p className="text-xl text-gray-200 mb-2">
               Sign in to your InsightForge account
-            </p>
-            <p className="text-gray-300">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-medium text-accent hover:text-accent/90 transition-colors"
-              >
-                Create one here
-              </Link>
             </p>
           </div>
         </div>
@@ -263,9 +245,22 @@ const Login: React.FC = () => {
                 </Button>
               </div>
 
+              {/* Sign up link */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Don't have an account yet?{" "}
+                  <Link
+                    to="/register"
+                    className="font-medium text-accent hover:text-accent/90 transition-colors underline"
+                  >
+                    Sign up for a free trial!
+                  </Link>
+                </p>
+              </div>
+
               {/* Additional Info */}
               <div className="mt-8 text-center">
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   By signing in, you agree to our{" "}
                   <Link
                     to="/terms"

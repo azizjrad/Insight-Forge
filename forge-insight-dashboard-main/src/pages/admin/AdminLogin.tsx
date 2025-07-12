@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import Logo from "../../components/layout/Logo";
 
 const AdminLogin: React.FC = () => {
@@ -24,11 +25,10 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, signIn } = useAuth();
 
-  // Check if user is already logged in (simple localStorage check)
-  const isLoggedIn = localStorage.getItem("admin_logged_in") === "true";
-
-  if (isLoggedIn) {
+  // Check if user is already logged in
+  if (user) {
     return <Navigate to="/admin" replace />;
   }
 
@@ -36,15 +36,24 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simple demo authentication
+    // Simple demo authentication for admin
     if (email === "admin@demo.com" && password === "password") {
-      localStorage.setItem("admin_logged_in", "true");
-      localStorage.setItem(
-        "admin_user",
-        JSON.stringify({ email, name: "Admin User" })
-      );
-      toast.success("Successfully signed in");
-      navigate("/admin");
+      try {
+        // Use the auth context but set admin-specific data
+        localStorage.setItem("admin_logged_in", "true");
+        localStorage.setItem(
+          "admin_user",
+          JSON.stringify({ email, name: "Admin User" })
+        );
+
+        const { error } = await signIn(email, password);
+        if (!error) {
+          toast.success("Successfully signed in");
+          navigate("/admin");
+        }
+      } catch (error) {
+        toast.error("An error occurred during login");
+      }
     } else {
       toast.error("Invalid credentials. Try admin@demo.com / password");
     }

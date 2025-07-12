@@ -31,23 +31,23 @@ const FinancialDetailsTable: React.FC<FinancialDetailsTableProps> = ({
   profitMargin,
   formatTND,
 }) => (
-  <Card className="bg-white border border-gray-200/50 shadow-sm hover:shadow-lg transition-all duration-300">
+  <Card className="bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-gray-500/10 to-gray-600/20 rounded-xl">
-            <Calculator className="w-5 h-5 text-gray-600" />
+          <div className="p-2 bg-gradient-to-br from-gray-500/20 to-gray-600/20 rounded-xl">
+            <Calculator className="w-5 h-5 text-gray-300" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-gray-200">
               {t("financial.financialDetails")}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               Monthly breakdown and analysis
             </p>
           </div>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700/60 backdrop-blur-md border border-gray-600/50 rounded-xl hover:bg-gray-600/60 hover:text-gray-200 hover:shadow-lg transition-all duration-200">
           <Download size={16} />
           Export Table
         </button>
@@ -55,25 +55,25 @@ const FinancialDetailsTable: React.FC<FinancialDetailsTableProps> = ({
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-gray-100">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <tr className="border-b border-gray-700/50">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                 {t("financial.month")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                 {t("dashboard.revenue")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                 {t("financial.expenses")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                 {t("financial.profit")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                 {t("financial.margin")}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-gray-700/30">
             {revenueExpenses.map((month, index) => {
               const profit = month.revenue - month.expenses;
               const margin = Math.round((profit / month.revenue) * 100);
@@ -81,27 +81,27 @@ const FinancialDetailsTable: React.FC<FinancialDetailsTableProps> = ({
               return (
                 <tr
                   key={index}
-                  className="hover:bg-gray-50/50 transition-colors duration-200 group"
+                  className="hover:bg-gray-700/30 transition-colors duration-200 group"
                 >
                   <td className="px-4 py-4">
-                    <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">
+                    <span className="text-sm font-medium text-gray-200 group-hover:text-secondary transition-colors">
                       {month.month}
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="text-sm font-semibold text-green-700">
+                    <span className="text-sm font-semibold text-green-400">
                       {formatTND(month.revenue)}
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="text-sm font-semibold text-red-700">
+                    <span className="text-sm font-semibold text-red-400">
                       {formatTND(month.expenses)}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <span
                       className={`text-sm font-semibold ${
-                        profit > 0 ? "text-blue-700" : "text-red-700"
+                        profit > 0 ? "text-blue-400" : "text-red-400"
                       }`}
                     >
                       {formatTND(profit)}
@@ -112,15 +112,15 @@ const FinancialDetailsTable: React.FC<FinancialDetailsTableProps> = ({
                       <span
                         className={`text-sm font-semibold ${
                           margin > 20
-                            ? "text-green-700"
+                            ? "text-green-400"
                             : margin > 10
-                            ? "text-yellow-700"
-                            : "text-red-700"
+                            ? "text-yellow-400"
+                            : "text-red-400"
                         }`}
                       >
                         {margin}%
                       </span>
-                      <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-16 h-2 bg-gray-600/60 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             margin > 20
@@ -139,29 +139,29 @@ const FinancialDetailsTable: React.FC<FinancialDetailsTableProps> = ({
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-t-2 border-gray-200">
+            <tr className="bg-gradient-to-r from-gray-700/40 to-gray-600/40 border-t-2 border-gray-600/50">
               <td className="px-4 py-4">
-                <span className="text-sm font-bold text-gray-900">
+                <span className="text-sm font-bold text-gray-200">
                   {t("financial.total")}
                 </span>
               </td>
               <td className="px-4 py-4">
-                <span className="text-sm font-bold text-green-800">
+                <span className="text-sm font-bold text-green-400">
                   {formatTND(totalRevenue)}
                 </span>
               </td>
               <td className="px-4 py-4">
-                <span className="text-sm font-bold text-red-800">
+                <span className="text-sm font-bold text-red-400">
                   {formatTND(totalExpenses)}
                 </span>
               </td>
               <td className="px-4 py-4">
-                <span className="text-sm font-bold text-blue-800">
+                <span className="text-sm font-bold text-blue-400">
                   {formatTND(totalProfit)}
                 </span>
               </td>
               <td className="px-4 py-4">
-                <span className="text-sm font-bold text-gray-900">
+                <span className="text-sm font-bold text-gray-200">
                   {profitMargin}%
                 </span>
               </td>

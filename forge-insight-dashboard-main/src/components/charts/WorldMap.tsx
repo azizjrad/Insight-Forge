@@ -40,7 +40,8 @@ interface Position {
 
 // Using a more reliable world topology source with fallback
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@3/countries-110m.json";
-const fallbackGeoUrl = "https://raw.githubusercontent.com/topojson/world-atlas/master/countries-110m.json";
+const fallbackGeoUrl =
+  "https://raw.githubusercontent.com/topojson/world-atlas/master/countries-110m.json";
 
 // Country code mapping for better matching
 const countryCodeMap: { [key: string]: string } = {
@@ -236,7 +237,44 @@ const SelectedCountryDetails: React.FC<{
   </div>
 );
 
+// Simple grid visualization as fallback
+const SimpleCountryGrid: React.FC<{ data: WorldMapProps["data"] }> = ({
+  data,
+}) => (
+  <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 overflow-hidden">
+    <div className="h-full flex flex-col">
+      <div className="text-center mb-4">
+        <h4 className="text-lg font-semibold text-gray-800 mb-2">
+          Guest Distribution by Country
+        </h4>
+        <p className="text-sm text-gray-600">
+          Interactive map unavailable - showing data grid
+        </p>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto">
+        {data.slice(0, 20).map((country, index) => (
+          <div
+            key={country.name}
+            className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow border-l-4"
+            style={{ borderLeftColor: country.color || "#3b82f6" }}
+          >
+            <div className="text-sm font-medium text-gray-900 mb-1">
+              {country.name}
+            </div>
+            <div className="text-lg font-bold text-gray-700">
+              {country.value.toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-500">#{index + 1}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Main WorldMap component
 const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
+  const { dataMap, maxValue, sortedData } = useWorldMapData(data);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(
     null
   );
@@ -245,17 +283,15 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
     coordinates: [0, 0],
     zoom: 1,
   });
-  const [mapError, setMapError] = useState<boolean>(false);
-  const [mapLoading, setMapLoading] = useState<boolean>(true);
-  const [currentGeoUrl, setCurrentGeoUrl] = useState<string>(geoUrl);
-
-  const { dataMap, maxValue, sortedData } = useWorldMapData(data);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [mapError, setMapError] = useState(false);
+  const [currentGeoUrl, setCurrentGeoUrl] = useState(geoUrl);
 
   // Add a timeout to handle cases where onLoad doesn't fire
   useEffect(() => {
     const timer = setTimeout(() => {
       if (mapLoading && !mapError) {
-        console.warn('Map loading timeout - forcing load completion');
+        console.warn("Map loading timeout - forcing load completion");
         setMapLoading(false);
       }
     }, 10000); // 10 second timeout
@@ -265,8 +301,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
 
   // Debug the data being passed to the map
   useEffect(() => {
-    console.log('WorldMap received data:', data);
-    console.log('Processed countries:', sortedData.slice(0, 5));
+    console.log("WorldMap received data:", data);
+    console.log("Processed countries:", sortedData.slice(0, 5));
   }, [data, sortedData]);
 
   // Function to get country data with improved matching
@@ -357,22 +393,22 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
   };
 
   const handleMapError = (): void => {
-    console.error('Map loading error with URL:', currentGeoUrl);
+    console.error("Map loading error with URL:", currentGeoUrl);
     if (currentGeoUrl === geoUrl) {
       // Try fallback URL
-      console.log('Attempting fallback URL:', fallbackGeoUrl);
+      console.log("Attempting fallback URL:", fallbackGeoUrl);
       setCurrentGeoUrl(fallbackGeoUrl);
       setMapLoading(true);
       setMapError(false);
     } else {
-      console.error('Both primary and fallback URLs failed');
+      console.error("Both primary and fallback URLs failed");
       setMapError(true);
       setMapLoading(false);
     }
   };
 
   const handleMapLoad = (): void => {
-    console.log('Map loaded successfully with URL:', currentGeoUrl);
+    console.log("Map loaded successfully with URL:", currentGeoUrl);
     setMapLoading(false);
     setMapError(false);
   };
@@ -428,7 +464,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                       Loading world map...
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Using: {currentGeoUrl.includes('jsdelivr') ? 'Primary' : 'Fallback'} source
+                      Using:{" "}
+                      {currentGeoUrl.includes("jsdelivr")
+                        ? "Primary"
+                        : "Fallback"}{" "}
+                      source
                     </p>
                   </div>
                 </div>

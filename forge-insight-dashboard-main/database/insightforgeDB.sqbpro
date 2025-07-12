@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="insightforgeDB.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="8790"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="activity_logs" custom_title="0" dock_id="1" table="4,13:mainactivity_logs"/><dock_state state="000000ff00000000fd000000010000000200000113000002acfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000001130000011800ffffff000001130000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">-- InsightForge SQLite Schema
+-- Comprehensive database schema for hotel analytics dashboard
+-- Supports all dashboard features including KPIs, bookings, financial analytics, and guest segments
+
+-- Enable foreign key constraints
+PRAGMA foreign_keys = ON;
+
+-- 1. Hotels table
+CREATE TABLE IF NOT EXISTS hotels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    city VARCHAR(100),
+    country VARCHAR(100),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    website VARCHAR(255),
+    star_rating INTEGER CHECK (star_rating &gt;= 1 AND star_rating &lt;= 5),
+    total_rooms INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, city, country)
+);
+
+-- 2. Users table
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(50) DEFAULT 'staff', -- admin, manager, staff, viewer
+    is_active BOOLEAN DEFAULT 1,
+    avatar_url TEXT,
+    phone VARCHAR(50),
+    last_login DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
+-- 3. Room types table
+CREATE TABLE IF NOT EXISTS room_types (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    name VARCHAR(100) NOT NULL, -- Standard, Deluxe, Suite, Family, Executive
+    description TEXT,
+    base_price DECIMAL(10,2) NOT NULL,
+    max_occupancy INTEGER DEFAULT 2,
+    amenities TEXT, -- JSON format
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    UNIQUE(hotel_id, name)
+);
+
+-- 4. Rooms table
+CREATE TABLE IF NOT EXISTS rooms (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    room_type_id INTEGER NOT NULL,
+    room_number VARCHAR(20) NOT NULL,
+    floor INTEGER,
+    status VARCHAR(50) DEFAULT 'available', -- available, occupied, maintenance, out_of_order
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (room_type_id) REFERENCES room_types(id) ON DELETE CASCADE,
+    UNIQUE(hotel_id, room_number)
+);
+
+-- 5. Guests table
+CREATE TABLE IF NOT EXISTS guests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    nationality VARCHAR(50), -- ISO country code
+    date_of_birth DATE,
+    gender VARCHAR(10),
+    address TEXT,
+    city VARCHAR(100),
+    country VARCHAR(100),
+    id_type VARCHAR(50), -- passport, driver_license, national_id
+    id_number VARCHAR(100),
+    vip_status BOOLEAN DEFAULT 0,
+    loyalty_tier VARCHAR(50), -- bronze, silver, gold, platinum
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. Booking sources table
+CREATE TABLE IF NOT EXISTS booking_sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE, -- Direct, Booking.com, Expedia, Airbnb, etc.
+    commission_rate DECIMAL(5,2) DEFAULT 0,
+    is_active BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. Bookings table
+CREATE TABLE IF NOT EXISTS bookings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    room_id INTEGER,
+    room_type_id INTEGER NOT NULL,
+    guest_id INTEGER,
+    booking_reference VARCHAR(50) UNIQUE NOT NULL,
+    check_in DATE NOT NULL,
+    check_out DATE NOT NULL,
+    booking_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    source_id INTEGER,
+    status VARCHAR(50) DEFAULT 'confirmed', -- confirmed, checked_in, checked_out, cancelled, no_show
+    adults INTEGER DEFAULT 1,
+    children INTEGER DEFAULT 0,
+    nights INTEGER GENERATED ALWAYS AS (julianday(check_out) - julianday(check_in)) STORED,
+    room_rate DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    paid_amount DECIMAL(10,2) DEFAULT 0,
+    currency VARCHAR(3) DEFAULT 'USD',
+    special_requests TEXT,
+    notes TEXT,
+    cancellation_date DATETIME,
+    cancellation_reason TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL,
+    FOREIGN KEY (room_type_id) REFERENCES room_types(id) ON DELETE CASCADE,
+    FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE SET NULL,
+    FOREIGN KEY (source_id) REFERENCES booking_sources(id) ON DELETE SET NULL,
+    CONSTRAINT chk_dates CHECK (check_out &gt; check_in),
+    CONSTRAINT chk_amounts CHECK (total_amount &gt;= 0 AND paid_amount &gt;= 0)
+);
+
+-- 8. Payments table
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    booking_id INTEGER NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    payment_method VARCHAR(50), -- cash, credit_card, debit_card, bank_transfer, online
+    payment_status VARCHAR(50) DEFAULT 'pending', -- pending, completed, failed, refunded
+    transaction_id VARCHAR(255),
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+);
+
+-- 9. Revenue table
+CREATE TABLE IF NOT EXISTS revenue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    booking_id INTEGER,
+    date DATE NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    revenue_type VARCHAR(100) NOT NULL, -- room, food_beverage, spa, parking, other
+    category VARCHAR(100), -- subcategory for detailed analysis
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
+);
+
+-- 10. Expenses table
+CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    date DATE NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    category VARCHAR(100) NOT NULL, -- staff_salaries, utilities, supplies, maintenance, marketing, other
+    subcategory VARCHAR(100),
+    description TEXT,
+    vendor VARCHAR(255),
+    receipt_url TEXT,
+    approved_by INTEGER,
+    approval_date DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 11. Reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    guest_id INTEGER,
+    booking_id INTEGER,
+    platform VARCHAR(100), -- tripadvisor, google, booking_com, direct, etc.
+    rating INTEGER CHECK (rating &gt;= 1 AND rating &lt;= 5),
+    title VARCHAR(255),
+    comment TEXT,
+    response TEXT,
+    response_date DATETIME,
+    review_date DATE,
+    is_verified BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE SET NULL,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
+);
+
+-- 12. KPI snapshots table
+CREATE TABLE IF NOT EXISTS kpi_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    date DATE NOT NULL,
+    total_bookings INTEGER DEFAULT 0,
+    revenue DECIMAL(12,2) DEFAULT 0,
+    occupancy_rate DECIMAL(5,2) DEFAULT 0, -- percentage
+    adr DECIMAL(10,2) DEFAULT 0, -- Average Daily Rate
+    revpar DECIMAL(10,2) DEFAULT 0, -- Revenue per Available Room
+    goppar DECIMAL(10,2) DEFAULT 0, -- Gross Operating Profit per Available Room
+    alos DECIMAL(5,2) DEFAULT 0, -- Average Length of Stay
+    average_rating DECIMAL(3,2) DEFAULT 0,
+    total_rooms_available INTEGER DEFAULT 0,
+    rooms_occupied INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    UNIQUE(hotel_id, date)
+);
+
+-- 13. Activity logs table
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    user_id INTEGER,
+    activity_type VARCHAR(100) NOT NULL, -- booking, payment, check_in, check_out, cancellation, etc.
+    entity_type VARCHAR(100), -- booking, guest, room, payment
+    entity_id INTEGER,
+    description TEXT NOT NULL,
+    metadata TEXT, -- JSON format for additional data
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 14. Settings table
+CREATE TABLE IF NOT EXISTS settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hotel_id INTEGER NOT NULL,
+    setting_key VARCHAR(255) NOT NULL,
+    setting_value TEXT,
+    setting_type VARCHAR(50) DEFAULT 'string', -- string, number, boolean, json
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    UNIQUE(hotel_id, setting_key)
+);
+
+-- Indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(check_in, check_out);
+CREATE INDEX IF NOT EXISTS idx_bookings_hotel_id ON bookings(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_guest_id ON bookings(guest_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_source ON bookings(source_id);
+
+CREATE INDEX IF NOT EXISTS idx_revenue_hotel_date ON revenue(hotel_id, date);
+CREATE INDEX IF NOT EXISTS idx_revenue_type ON revenue(revenue_type);
+
+CREATE INDEX IF NOT EXISTS idx_expenses_hotel_date ON expenses(hotel_id, date);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+
+CREATE INDEX IF NOT EXISTS idx_kpi_hotel_date ON kpi_snapshots(hotel_id, date);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_hotel_rating ON reviews(hotel_id, rating);
+CREATE INDEX IF NOT EXISTS idx_reviews_date ON reviews(review_date);
+
+CREATE INDEX IF NOT EXISTS idx_guests_nationality ON guests(nationality);
+CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email);
+
+CREATE INDEX IF NOT EXISTS idx_activity_logs_hotel_date ON activity_logs(hotel_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_type ON activity_logs(activity_type);
+
+-- Triggers for automatic updates
+CREATE TRIGGER IF NOT EXISTS update_hotels_timestamp 
+    AFTER UPDATE ON hotels
+    BEGIN
+        UPDATE hotels SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_users_timestamp 
+    AFTER UPDATE ON users
+    BEGIN
+        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_rooms_timestamp 
+    AFTER UPDATE ON rooms
+    BEGIN
+        UPDATE rooms SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_guests_timestamp 
+    AFTER UPDATE ON guests
+    BEGIN
+        UPDATE guests SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_bookings_timestamp 
+    AFTER UPDATE ON bookings
+    BEGIN
+        UPDATE bookings SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_settings_timestamp 
+    AFTER UPDATE ON settings
+    BEGIN
+        UPDATE settings SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+    
+</sql><current_tab id="0"/></tab_sql></sqlb_project>

@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+// Remove auth import
 import { toast } from "sonner";
 
 interface DataSource {
@@ -71,7 +71,7 @@ interface DataSource {
 }
 
 const DataSources: React.FC = () => {
-  const { user } = useAuth();
+  const user = null;
   const [isAddingSource, setIsAddingSource] = useState(false);
   const [newSource, setNewSource] = useState({
     name: "",
@@ -609,3 +609,4 @@ const DataSources: React.FC = () => {
 };
 
 export default DataSources;
+

@@ -109,25 +109,25 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
     }
   };
   return (
-    <Card className="bg-white/80 backdrop-blur-md border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 p-6">
+    <Card className="bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-xl hover:shadow-2xl hover:border-green-500/30 transition-all duration-300 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 bg-green-500/10 rounded-xl">
-          <Shield className="w-6 h-6 text-green-600" />
+          <Shield className="w-6 h-6 text-green-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-200">
             Security Settings
           </h3>
-          <p className="text-sm text-gray-600">Manage your account security</p>
+          <p className="text-sm text-gray-400">Manage your account security</p>
         </div>
         {saveStatus === "success" && (
-          <div className="flex items-center gap-2 text-green-600">
+          <div className="flex items-center gap-2 text-green-400">
             <CheckCircle size={16} />
             <span className="text-sm font-medium">Password updated!</span>
           </div>
         )}
         {saveStatus === "error" && (
-          <div className="flex items-center gap-2 text-red-600">
+          <div className="flex items-center gap-2 text-red-400">
             <AlertCircle size={16} />
             <span className="text-sm font-medium">Update failed</span>
           </div>
@@ -138,7 +138,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
         <div className="space-y-2">
           <Label
             htmlFor="currentPassword"
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-gray-300"
           >
             Current Password
           </Label>
@@ -150,27 +150,27 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
               onChange={(e) =>
                 handlePasswordChange("currentPassword", e.target.value)
               }
-              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                errors.currentPassword ? "border-red-500" : "border-gray-200"
+              className={`w-full px-3 py-2 pr-10 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+                errors.currentPassword ? "border-red-500" : "border-gray-600/50"
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           {errors.currentPassword && (
-            <p className="text-sm text-red-600">{errors.currentPassword}</p>
+            <p className="text-sm text-red-400">{errors.currentPassword}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <Label
             htmlFor="newPassword"
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-gray-300"
           >
             New Password
           </Label>
@@ -181,28 +181,28 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
             onChange={(e) =>
               handlePasswordChange("newPassword", e.target.value)
             }
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-              errors.newPassword ? "border-red-500" : "border-gray-200"
+            className={`w-full px-3 py-2 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+              errors.newPassword ? "border-red-500" : "border-gray-600/50"
             }`}
           />
           {errors.newPassword && (
-            <p className="text-sm text-red-600">{errors.newPassword}</p>
+            <p className="text-sm text-red-400">{errors.newPassword}</p>
           )}
-          <div className="text-xs text-gray-500 space-y-1">
+          <div className="text-xs text-gray-400 space-y-1">
             <p>Password requirements:</p>
             <ul className="pl-4 space-y-1">
               <li
                 className={`flex items-center gap-2 ${
                   passwordData.newPassword.length >= 8
-                    ? "text-green-600"
-                    : "text-gray-400"
+                    ? "text-green-400"
+                    : "text-gray-500"
                 }`}
               >
                 <div
                   className={`w-2 h-2 rounded-full ${
                     passwordData.newPassword.length >= 8
-                      ? "bg-green-500"
-                      : "bg-gray-300"
+                      ? "bg-green-400"
+                      : "bg-gray-600"
                   }`}
                 />
                 At least 8 characters
@@ -212,8 +212,8 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                   /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(
                     passwordData.newPassword
                   )
-                    ? "text-green-600"
-                    : "text-gray-400"
+                    ? "text-green-400"
+                    : "text-gray-500"
                 }`}
               >
                 <div
@@ -221,8 +221,8 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                     /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(
                       passwordData.newPassword
                     )
-                      ? "bg-green-500"
-                      : "bg-gray-300"
+                      ? "bg-green-400"
+                      : "bg-gray-600"
                   }`}
                 />
                 Uppercase, lowercase, and number
@@ -234,7 +234,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
         <div className="space-y-2">
           <Label
             htmlFor="confirmPassword"
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-gray-300"
           >
             Confirm New Password
           </Label>
@@ -245,38 +245,36 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
             onChange={(e) =>
               handlePasswordChange("confirmPassword", e.target.value)
             }
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-              errors.confirmPassword ? "border-red-500" : "border-gray-200"
+            className={`w-full px-3 py-2 bg-gray-700/60 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors text-gray-200 placeholder-gray-400 ${
+              errors.confirmPassword ? "border-red-500" : "border-gray-600/50"
             }`}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-red-600">{errors.confirmPassword}</p>
+            <p className="text-sm text-red-400">{errors.confirmPassword}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-700/40 backdrop-blur-md rounded-xl border border-gray-600/30">
           <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-green-600" />
+            <Shield className="w-5 h-5 text-green-400" />
             <div>
-              <p className="text-sm font-medium text-green-900">
+              <p className="text-sm font-medium text-gray-200">
                 Two-Factor Authentication
               </p>
-              <p className="text-xs text-green-600">
-                Enhanced account security
-              </p>
+              <p className="text-xs text-gray-400">Enhanced account security</p>
             </div>
           </div>
           <Switch
             checked={twoFactorEnabled}
             onCheckedChange={setTwoFactorEnabled}
-            className="data-[state=checked]:bg-green-600"
+            className="data-[state=checked]:bg-green-500"
           />
         </div>
 
         <Button
           onClick={handleSave}
           disabled={isLoading}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-green-400 disabled:to-green-500 text-white py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
         >
           {isLoading ? (
             <>

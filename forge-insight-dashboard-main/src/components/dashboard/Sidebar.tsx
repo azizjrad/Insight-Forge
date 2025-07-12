@@ -15,7 +15,7 @@ import {
   VolumeX,
   Bot,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+// Remove auth import
 import { toast } from "sonner";
 import Logo from "../layout/Logo";
 import { useDoorSoundEffects } from "@/hooks/useDoorSoundEffects";
@@ -26,7 +26,7 @@ const Sidebar: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const signOut = () => {};
 
   // Sound effects hook
   const {
@@ -377,3 +377,4 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
+
