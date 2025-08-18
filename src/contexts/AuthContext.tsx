@@ -124,7 +124,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signUp = async (email: string, password: string, fullName?: string) => {
     setLoading(true);
     try {
-      const result = await authApi.signup(email, password, fullName || "New User");
+      const result = await authApi.signup(
+        email,
+        password,
+        fullName || "New User"
+      );
 
       if (result.data) {
         const authData = result.data as AuthResponse;
